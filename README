@@ -7,6 +7,7 @@ damage calculators, class building tools, equipment search, etc.)
 
 This software is not yet complete. The following components are complete:
     * Spell information gathering
+    * Caching of downloaded data
 
 The following components remain unfinished:
     * Equipment information gathering

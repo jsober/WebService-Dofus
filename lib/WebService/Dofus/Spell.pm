@@ -12,14 +12,21 @@ use MooseX::StrictConstructor;
 use namespace::autoclean;
 
 use Const::Fast           qw/const/;
-use Fcntl                 qw/:flock/;
-use File::Path            qw//;
-use File::Spec            qw//;
 use HTTP::Cookies         qw//;
 use HTTP::Request::Common qw/POST/;
 use JSON                  qw//;
 use LWP::UserAgent        qw//;
 use Mojo::DOM             qw//;
+
+has 'cache_group' => (
+    isa      => 'Str',
+    is       => 'ro',
+    init_arg => undef,
+    default  => 'spell',
+);
+
+with 'WebService::Dofus::Role::Cached';
+
 
 const our $HOST => 'http://www.dofus.com';
 const our $PATH => '/requests/encyclopedia_spell';
@@ -53,60 +60,6 @@ my %_valid;
 const our @VALID => keys %_valid;
 undef %_valid;
 
-has 'cache_dir' => (
-    isa      => 'Str',
-    is       => 'rw',
-    required => 1,
-);
-
-sub _data_key { join '-', @_ }
-
-sub _cache_file {
-    my ($self, $class, $spell, $level) = @_;
-    my $path = File::Spec->catfile($self->cache_dir, $class, $spell, $level);
-
-    if (-e $path && !-d $path) {
-        File::Path::rmtree($path);
-    }
-
-    unless (-e $path) {
-        File::Path::mkpath($path);
-    }
-
-    return File::Spec->catfile($path, 'data');
-}
-
-sub _has_cache {
-    my $self = shift;
-    return -e $self->_cache_file(@_);
-}
-
-sub _get_cache {
-    my $self = shift;
-    open my $fh, '<', $self->_cache_file(@_);
-    return unless $fh;
-
-    flock $fh, LOCK_SH or croak $!;
-    my $data = do { local $/; <$fh> };
-    flock $fh, LOCK_UN or croak $!;
-    close $fh;
-
-    return $data;
-}
-
-sub _set_cache {
-    my $self = shift;
-    my $data = pop;
-    open my $fh, '>', $self->_cache_file(@_) or croak "Error writing to cache: $!";
-
-    flock $fh, LOCK_EX or croak $!;
-    print $fh $data;
-    flock $fh, LOCK_UN or croak $!;
-    close $fh;
-
-    return;
-}
-
 sub _retrieve {
     my ($self, $class, $spell, $level) = @_;
     my $referer = sprintf 'http://www.dofus.com/en/mmorpg-game/characters/%s', $class;
@@ -132,9 +85,9 @@ sub _retrieve {
         my %header = ('X-Requested-With' => 'XMLHttpRequest');
 
         my $ua = LWP::UserAgent->new('Test/1.0');
+        $ua->cookie_jar(HTTP::Cookies->new());
         $ua->env_proxy;
         #$ua->show_progress(1);
-        $ua->cookie_jar(HTTP::Cookies->new());
 
         my $request  = POST($HOST . $PATH, %header, Content => $param);
         my $response = $ua->request($request);
