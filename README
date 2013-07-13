@@ -1,16 +1,17 @@
 WebService-Dofus
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+WebService::Dofus provides a mechanism to pull information about spells and
+equipment from the encyclopedia on the Dofus website. The goal of this project
+is to make developing tools to supplement game play much easier (such as
+damage calculators, class building tools, equipment search, etc.)
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
+This software is not yet complete. The following components are complete:
+    * Spell information gathering
 
+The following components remain unfinished:
+    * Equipment information gathering
+    * Cohesive module API
+    * Unit tests
 
 INSTALLATION
 

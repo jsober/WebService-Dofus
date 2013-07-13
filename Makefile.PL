@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME             => 'WebService::Dofus',
-    AUTHOR           => q{"Jeff Ober" <"jeffober@gmail.com">},
+    AUTHOR           => q/"Jeff Ober" <"jeffober@gmail.com">/,
     VERSION_FROM     => 'lib/WebService/Dofus.pm',
     ABSTRACT_FROM    => 'lib/WebService/Dofus.pm',
     LICENSE          => 'BSD',
