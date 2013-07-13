@@ -1,6 +1,3 @@
-#-------------------------------------------------------------------------------
-#
-#-------------------------------------------------------------------------------
 package WebService::Dofus::Spell;
 
 use strict;
@@ -26,7 +23,6 @@ has 'cache_group' => (
 );
 
 with 'WebService::Dofus::Role::Cached';
-
 
 const our $HOST => 'http://www.dofus.com';
 const our $PATH => '/requests/encyclopedia_spell';
@@ -60,8 +56,26 @@ my %_valid;
 const our @VALID => keys %_valid;
 undef %_valid;
 
+#-------------------------------------------------------------------------------
+# Retrieves the remote data for a spell. If cached, returns data from the cache.
+#
+# Inputs:
+#    $class - class name; may be in English or French
+#    $spell - spell number: the number associated with the order in which the
+#             spell is learned, with class spells coming last (1-21)
+#    $level - spell level (1-6)
+#
+# Output:
+#    The HTML section representing the spell in the Dofus character
+#    Encyclopedia.
+#
+#-------------------------------------------------------------------------------
 sub _retrieve {
     my ($self, $class, $spell, $level) = @_;
+    croak 'Expected argument $class' unless defined $class;
+    croak 'Expected argument $spell' unless defined $spell;
+    croak 'Expected argument $level' unless defined $level;
+    
     my $referer = sprintf 'http://www.dofus.com/en/mmorpg-game/characters/%s', $class;
 
     # Determine parameter value for class name. The subroutine parameter
@@ -152,3 +166,82 @@ sub info {
 }
 
 1;
+=pod
+
+=head1 NAME
+
+WebService::Dofus::Spell - Retrieves and parses spell data
+
+=head1 DESCRIPTION
+
+Retrieves and parses spell data from the Dofus website's class and spell
+encyclopedia.
+
+=head1 SYNOPSIS
+
+    use WebService::Dofus::Spell;
+
+    my $api  = WebService::Dofus::Spell->new(cache_dir => './cache');
+    my %data = $api->info(
+        'cra',  # class name in either EN or FR
+        1,      # spell number (based on order in which spell is learned)
+        6,      # spell level
+    );
+
+    print Dumper(\%data);
+    ----
+
+    $VAR1 = {
+              'effects' => [
+                             '26 to 28 (Fire damage)',
+                             'Steals 2 range (1 turn)'
+                           ],
+              'name' => 'Magic Arrow',
+              'graphic' => 'http://staticns.ankama.com/dofus/www//game/spells/33/sort_161.png',
+              'description' => 'Causes Fire-type damage and steals range from the target.',
+              'details' => {
+                             'Boosted range' => 'yes',
+                             'No. of turns between two casts' => '-',
+                             'Line of sight' => 'yes',
+                             'Linear' => 'no',
+                             'Free cells' => 'no',
+                             'Critical hit probability' => '1/30',
+                             'Failure probability' => '-',
+                             'No. of casts per turn' => '-',
+                             'No. of casts per turn per player' => '2'
+                           },
+              'critical' => [
+                              '30 to 32 (Fire damage)',
+                              'Steals 2 range (1 turn)'
+                            ],
+              'level' => 6,
+              'ra' => '1 - 12',
+              'ap' => '4'
+            };
+            
+=head1 ATTRIBUTES
+
+=head2 cache_dir
+
+Required; path to the directory to be used to cache data entries.
+
+=head1 METHODS
+
+=head2 info($class, $spell, $level)
+
+Returns information about the requested spell. C<$class> is the name of the
+Dofus class in English or French (e.g. accepts either 'rogue' or 'roublard').
+C<$spell> is the spell number, based on the order in which the spell is learned.
+Class spells (e.g. Dispersing Arrow for a Cra) are considered the final spell
+(21). C<$level> is the spell level, an integer between 1 and 6. All arguments
+are required.
+
+Returns a hash of details about the requested spell. See the example above.
+
+This method caches data in the L</cache_dir> directory specified. If data is
+present there, it will be used. If not, it will connect to the Dofus website
+and pull the data, then place it in the cache. Note that the cache is *never*
+automatically purged. This must be manually done according to the needs of the
+implementor utilizing this module.
+
+=cut
